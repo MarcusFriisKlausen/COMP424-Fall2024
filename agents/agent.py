@@ -38,7 +38,7 @@ class Agent:
 
         evaluation_best_move = self.alpha_beta_minimax(chess_board, player, opponent, depth, -float('inf'), float('inf'), True)
 
-        best_move = evaluation_best_move[1]
+        _, best_move = evaluation_best_move
 
         return best_move
 
