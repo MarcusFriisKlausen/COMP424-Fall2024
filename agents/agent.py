@@ -1,5 +1,6 @@
 import helpers as h
 import copy
+import numpy as np
 
 class Agent:
     def __init__(self):
@@ -138,4 +139,11 @@ class Agent:
         depth : int
             Depth for next evaluation.
         """
-        pass
+        empty_spaces = np.sum(chess_board == 0)
+
+        if empty_spaces > 40:
+            return 3
+        elif empty_spaces > 20:
+            return 5
+        else:
+            return 7
