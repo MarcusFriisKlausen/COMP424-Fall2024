@@ -142,8 +142,9 @@ class Agent:
         empty_spaces = np.sum(chess_board == 0)
 
         if empty_spaces > 40:
-            return 3
+            depth = 3
         elif empty_spaces > 20:
-            return 5
+            depth = 5
         else:
-            return 7
+            depth = 7
+        return depth
