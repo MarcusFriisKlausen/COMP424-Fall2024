@@ -1,4 +1,5 @@
 import helpers as h
+import copy
 
 class Agent:
     def __init__(self):
@@ -32,9 +33,13 @@ class Agent:
         move_pos : tuple of int
             The position (x, y) where the player places the disc.
         """
-        valid_moves = h.get_valid_moves(chess_board, player)
+        depth = self.tree_depth(chess_board)
 
-        pass
+        evaluation_best_move = self.alpha_beta_minimax(chess_board, player, opponent, depth, -float('inf'), float('inf'), True)
+
+        best_move = evaluation_best_move[1]
+
+        return best_move
 
     def alpha_beta_minimax(self, chess_board, player, opponent, depth, alpha, beta, max_player):
         """
@@ -61,7 +66,45 @@ class Agent:
         evaluation_best_move : (int, (int, int))
             Best evaluation for the player and the move correlating to the evalutaion.
         """
-        pass
+        valid_moves = h.get_valid_moves(chess_board, player)
+
+        if depth == 0 or len(valid_moves) == 0:
+            return None, None
+        
+        best_move = None
+
+        if max_player:
+            best_evaluation = -float('inf')
+            for move in valid_moves:
+                board_copy = copy.deepcopy(chess_board)
+                h.execute_move(board_copy, move, player)
+                evalutaion, _ = self.alpha_beta_minimax(board_copy, player, opponent, depth - 1, alpha, beta, False)
+
+                if evalutaion > best_evaluation:
+                    best_evaluation = evalutaion
+                    best_move = move
+
+                alpha = max(alpha, evalutaion)
+                if beta <= alpha:
+                    break
+            return best_evaluation, best_move
+            
+        else:
+            best_evaluation = float('inf')
+            for move in valid_moves:
+                board_copy = copy.deepcopy(chess_board)
+                h.execute_move(board_copy, move, player)
+                evalutaion, _ = self.alpha_beta_minimax(board_copy, player, opponent, depth - 1, alpha, beta, True)
+
+                if evalutaion < best_evaluation:
+                    best_evaluation = evalutaion
+                    best_move = move
+
+                beta = min(beta, evalutaion)
+                if beta <= alpha:
+                    break
+            return best_evaluation, best_move
+
 
     def evaluation(self, chess_board, player, opponent):
         """
