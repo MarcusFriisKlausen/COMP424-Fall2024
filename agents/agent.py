@@ -36,7 +36,9 @@ class Agent:
         """
         depth = self.tree_depth(chess_board)
 
-        evaluation_best_move = self.alpha_beta_minimax(chess_board, player, opponent, depth, -float('inf'), float('inf'), True)
+        is_max_player = True if player == 2 else False
+
+        evaluation_best_move = self.alpha_beta_minimax(chess_board, player, opponent, depth, -float('inf'), float('inf'), is_max_player)
 
         _, best_move = evaluation_best_move
 
@@ -70,7 +72,7 @@ class Agent:
         valid_moves = h.get_valid_moves(chess_board, player)
 
         if depth == 0 or len(valid_moves) == 0:
-            return None, None
+            return evalutaion(chess_board)
         
         best_move = None
 
@@ -107,7 +109,7 @@ class Agent:
             return best_evaluation, best_move
 
 
-    def evaluation(self, chess_board, player, opponent):
+    def evaluation(self, chess_board):
         """
         Evaluation function for board state.
         Parameters
@@ -122,9 +124,14 @@ class Agent:
         Returns
         -------
         evaluation : int
-            The evaluation of the current board for the player.
+            The evaluation of the current board.
         """
-        pass
+        maximizer_score = np.sum(chess_board == 2)
+        minimizer_score = np.sum(chess_board == 1)
+        
+        evaluation = maximizer_score - minimizer_score
+
+        return evaluation
     
     def tree_depth(self, chess_board):
         """
