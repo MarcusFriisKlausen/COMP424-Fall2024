@@ -84,6 +84,7 @@ class StudentAgent(Agent):
     """
     
     best_move = None
+    m = chess_board.shape[0]
     depth = 1
 
     while True:
@@ -160,7 +161,6 @@ class StudentAgent(Agent):
               alpha = max(alpha, evaluation)
               if beta <= alpha:
                   break
-          # print("Evaluation (min): ", best_evaluation)
           return best_evaluation, best_move
           
       else:
@@ -175,7 +175,6 @@ class StudentAgent(Agent):
               beta = min(beta, evaluation)
               if beta <= alpha:
                   break
-          # print("Evaluation (min): ", best_evaluation)
           return best_evaluation, best_move
   
   def evaluation(self, chess_board):
@@ -242,17 +241,27 @@ class StudentAgent(Agent):
     
     mobility = 5 * (len(h.get_valid_moves(chess_board, 2)) - len(h.get_valid_moves(chess_board, 1)))
 
+    stability = None
+    
+    pieces_placed = np.sum(chess_board != 0)
+
     if (m * m) / 2 > player_score + opponent_score:
         player_score = 0.2 * player_score
         opponent_score = 0.2 * opponent_score
-    elif (2 * m) / 3 > player_score + opponent_score:
+    elif (2 * (m * m)) / 3 > player_score + opponent_score:
+        player_stability = self.stable_discs(chess_board, 2)
+        opponent_stability = self.stable_discs(chess_board, 1)
+        stability = player_stability - opponent_stability
         player_score = 0.7 * player_score
         opponent_score = 0.7 * opponent_score
     elif (m * m) - 6 < player_score + opponent_score:
-        player_score = 1.2 * player_score
-        opponent_score = 1.2 * opponent_score
+        player_score = 1.5 * player_score
+        opponent_score = 1.5 * opponent_score
 
-    return mobility + (player_score - opponent_score)
+    if stability:
+        return stability + mobility + (player_score - opponent_score)
+    else:
+        return mobility + (player_score - opponent_score)
   
   def tree_depth(self, chess_board):
       """
@@ -301,10 +310,8 @@ class StudentAgent(Agent):
     """
     m = chess_board.shape[0]
     
-    # Define corners
     corners = {(0, 0), (0, m-1), (m-1, 0), (m-1, m-1)}
     
-    # Define positions adjacent to corners
     adj_to_corners = {
         (0, 1), (1, 0), (1, 1),           # Top-left corner
         (0, m-2), (1, m-1), (1, m-2),     # Top-right corner
@@ -312,7 +319,6 @@ class StudentAgent(Agent):
         (m-2, m-1), (m-1, m-2), (m-2, m-2)  # Bottom-right corner
     }
     
-    # Categorize moves
     corner_moves = []
     edge_moves = []
     center_moves = []
@@ -328,6 +334,55 @@ class StudentAgent(Agent):
         else:
             center_moves.append(move)
     
-    # Sort moves: corners > edges > centers > adjacent to corners
     sorted_moves = corner_moves + edge_moves + center_moves + adjacent_corner_moves
     return sorted_moves
+
+  def stable_discs(self, chess_board, player):
+    """
+    Calculates the stability score for the given player on the board.
+    
+    Stable discs are discs that can't be flipped for the rest of the game.
+    
+    Parameters
+    ----------
+    chess_board : numpy.ndarray of shape (board_size, board_size)
+        Current board state.
+    player : int
+        The current player's ID.
+    opponent : int
+        The opponent player's ID.
+
+    Returns
+    -------
+    stability_score : int
+        The stability score for the given player.
+    """
+    m = chess_board.shape[0]
+    stability_score = 0
+    
+    def is_stable(x, y):
+        """
+        Determines if a piece at (x, y) is stable.
+        A piece is stable if it cannot be flipped under any circumstances.
+        """
+        if chess_board[x, y] != player:
+            return False
+        
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+        for dx, dy in directions:
+            nx, ny = x + dx, y + dy
+            while 0 <= nx < m and 0 <= ny < m:
+                if chess_board[nx, ny] != player:
+                    break
+                nx, ny = nx + dx, ny + dy
+            else:
+                return True
+        return False
+
+    for x in range(m):
+        for y in range(m):
+            if chess_board[x, y] == player and is_stable(x, y):
+                stability_score += 1
+
+    return stability_score
+  
