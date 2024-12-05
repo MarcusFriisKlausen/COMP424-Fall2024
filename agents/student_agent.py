@@ -44,11 +44,6 @@ class StudentAgent(Agent):
 
       time_taken = time.time() - start_time
       print("My AI's turn took ", time_taken, "seconds.")
-
-      process = psutil.Process()
-      mem_info = process.memory_info()
-      # Uncomment the next line to print memory usage
-      print(f"Memory usage: {mem_info.rss / (1024 * 1024):.2f} MB")
       
       return best_move
   
@@ -56,7 +51,7 @@ class StudentAgent(Agent):
     """Iterative Deepening Minimax with Alpha-Beta Pruning and Time Constraint.
     
     This method uses iterative deepening to search progressively deeper levels 
-    of the game tree while respecting a time limit. It combines minimax 
+    of the game tree while respecting the time limit. It combines minimax 
     with alpha-beta pruning to find the best move for the current player.
     
     Parameters
@@ -79,7 +74,7 @@ class StudentAgent(Agent):
     -------
     eval : float
         The evaluation score of the best move found within the time limit.
-    best_move : (int, int) or None
+    best_move : (int, int) or (None, None)
         The coordinates of the best move for the player, or None if no valid move is found.
     """
     
@@ -242,8 +237,6 @@ class StudentAgent(Agent):
     mobility = 5 * (len(h.get_valid_moves(chess_board, 2)) - len(h.get_valid_moves(chess_board, 1)))
 
     stability = None
-    
-    pieces_placed = np.sum(chess_board != 0)
 
     if (m * m) / 2 > player_score + opponent_score:
         player_score = 0.2 * player_score
@@ -262,29 +255,6 @@ class StudentAgent(Agent):
         return stability + mobility + (player_score - opponent_score)
     else:
         return mobility + (player_score - opponent_score)
-  
-  def tree_depth(self, chess_board):
-      """
-      Function for deciding how far tree depth should be for evaluation based on amount of pieces currently on the board.
-      Parameters
-      ----------
-      chess_board : numpy.ndarray of shape (board_size, board_size)
-          The chess board with 0 representing an empty space, 1 for black (Player 1),
-          and 2 for white (Player 2).
-      Returns
-      -------
-      depth : int
-          Depth for next evaluation.
-      """
-
-      empty_spaces = np.sum(chess_board == 0)
-      if empty_spaces > 40:
-          depth = 50
-      elif empty_spaces > 20:
-          depth = 40
-      else:
-          depth = 20
-      return empty_spaces
   
   def prioritize_moves(self, chess_board, valid_moves):
     """
@@ -340,7 +310,6 @@ class StudentAgent(Agent):
   def stable_discs(self, chess_board, player):
     """
     Calculates the stability score for the given player on the board.
-    
     Stable discs are discs that can't be flipped for the rest of the game.
     
     Parameters
